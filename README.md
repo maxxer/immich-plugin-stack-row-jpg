@@ -79,11 +79,45 @@ Workflows are per user. Each person who wants their RAW+JPEG pairs stacked does 
 3. Optionally change the cover (JPEG/HEIC or RAW), time tolerance, camera check or extension lists.
 4. Save and enable the workflow. Turn on logging while testing so runs show up in the workflow.
 
+> **The trigger must be "Metadata extraction" (`AssetMetadataExtraction`).** The template sets this
+> for you. If you create the workflow by hand, the form starts on **Asset created**
+> (`AssetCreate`): change it. `AssetCreate` fires at upload time, before EXIF is read (capture
+> time and camera are not known yet), and it is **not** fired by re-running the metadata job, so
+> existing photos would never be stacked.
+
+Equivalent workflow JSON (Workflows → your workflow → JSON editor):
+
+```json
+{
+  "name": "Stack RAW + JPEG",
+  "enabled": true,
+  "trigger": "AssetMetadataExtraction",
+  "steps": [
+    {
+      "method": "raw-jpg-stacker#stackRawJpg",
+      "config": { "apiKey": "YOUR_API_KEY", "primary": "JPEG/HEIC" },
+      "enabled": true
+    }
+  ]
+}
+```
+
+Settings left out of `config` use their defaults (see [Settings](#settings)).
+
 ### 5. Stack existing photos (optional)
 
 The workflow fires whenever metadata is extracted, so to process your existing library go to
-**Administration → Job queues → Extract metadata → All**. This re-reads metadata for every asset
-(it can take a while on large libraries) and the workflow stacks pairs as it goes.
+**Administration → Job queues → Extract metadata → All** (not *Missing*, which skips assets that
+were already processed). This re-reads metadata for every asset (it can take a while on large
+libraries) and the workflow stacks pairs as it goes. Only users whose workflow is already enabled
+get their pairs stacked. It is safe to run again: files already in a stack are skipped.
+
+## Viewing stacks
+
+A stack shows in the timeline as a single thumbnail (the cover) with a stack icon. Open it, and
+the other files of the stack (e.g. the CR2) appear as a strip of thumbnails at the bottom of the
+viewer; click or tap one to switch to it, e.g. to download the RAW. From an open photo's ⋮ menu you
+can make that file the cover or unstack the group.
 
 ## Settings
 
@@ -104,8 +138,11 @@ version, and restart.
 
 ## Troubleshooting
 
-- **Nothing happens:** check the workflow is enabled and logging is on, then look at the
-  `immich_server` logs. Lines starting with `raw-jpg-stacker:` show what was stacked; skipped files
+- **Nothing happens, and no `raw-jpg-stacker:` lines in the logs:** check the workflow trigger is
+  **Metadata extraction** (`"trigger": "AssetMetadataExtraction"`), not *Asset created*. Then check
+  the workflow is enabled, and that the logs show
+  `Loaded plugin with host functions: raw-jpg-stacker@…/worker`.
+- **Still nothing:** turn on workflow logging, then look at the `immich_server` logs. Lines starting with `raw-jpg-stacker:` show what was stacked; skipped files
   are logged at debug level (`IMMICH_LOG_LEVEL=debug`).
 - **`POST /search/metadata failed with 401/403`:** wrong API key or missing permissions.
 - **`Hostname did not match any listed in methods[].allowedHosts`:** the server URL host isn't in
