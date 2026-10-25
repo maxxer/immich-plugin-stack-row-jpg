@@ -1,0 +1,99 @@
+{
+  "name": "raw-jpg-stacker",
+  "version": "0.1.0",
+  "title": "RAW + JPEG stacker",
+  "description": "Groups RAW files with their camera JPEG/HEIC (same file name, same capture time) into a single stack",
+  "author": "maxxer",
+  "wasmPath": "dist/plugin.wasm",
+  "templates": [
+    {
+      "name": "stack-raw-jpg",
+      "title": "Stack RAW + JPEG",
+      "description": "Show RAW and JPEG/HEIC files from the same shot as one photo, with the JPEG as cover. Paste an API key in the step settings before enabling.",
+      "trigger": "AssetMetadataExtraction",
+      "steps": [
+        {
+          "method": "raw-jpg-stacker#stackRawJpg",
+          "config": {
+            "serverUrl": "http://localhost:2283",
+            "apiKey": "",
+            "primary": "JPEG/HEIC",
+            "maxTimeDifferenceSeconds": 2,
+            "matchCamera": true,
+            "rawExtensions": "arw,srf,sr2,cr2,cr3,crw,nef,nrw,raf,orf,ori,rw2,raw,dng,pef,srw,x3f,iiq,3fr,fff,erf,mef,mos,mrw,kdc,dcr,rwl",
+            "companionExtensions": "jpg,jpeg,heic,heif,hif"
+          }
+        }
+      ],
+      "uiHints": []
+    }
+  ],
+  "methods": [
+    {
+      "name": "stackRawJpg",
+      "title": "Stack RAW + JPEG",
+      "description": "Find the RAW or JPEG/HEIC sibling of this photo (same file name, same capture time) and stack them",
+      "types": ["AssetV1"],
+      "hostFunctions": true,
+      "allowedHosts": ["localhost", "127.0.0.1", "immich-server"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "title": "API key",
+            "description": "Your Immich API key with the asset.read, asset.update and stack.create permissions (Account settings → API keys)",
+            "uiHint": { "order": 1 }
+          },
+          "primary": {
+            "type": "string",
+            "title": "Stack cover",
+            "description": "Which file is shown in the timeline; the other stays inside the stack",
+            "enum": ["JPEG/HEIC", "RAW"],
+            "default": "JPEG/HEIC",
+            "uiHint": { "order": 2 }
+          },
+          "maxTimeDifferenceSeconds": {
+            "type": "number",
+            "title": "Max time difference (seconds)",
+            "description": "Capture times must be at most this far apart. 0 disables the check (match on file name only)",
+            "default": 2,
+            "minimum": 0,
+            "maximum": 3600,
+            "precision": 1,
+            "uiHint": { "order": 3 }
+          },
+          "matchCamera": {
+            "type": "boolean",
+            "title": "Require same camera",
+            "description": "Only stack files whose camera make and model match (ignored when either file has no camera info)",
+            "default": true,
+            "uiHint": { "order": 4 }
+          },
+          "rawExtensions": {
+            "type": "string",
+            "title": "RAW extensions",
+            "description": "Comma-separated list of RAW file extensions",
+            "default": "arw,srf,sr2,cr2,cr3,crw,nef,nrw,raf,orf,ori,rw2,raw,dng,pef,srw,x3f,iiq,3fr,fff,erf,mef,mos,mrw,kdc,dcr,rwl",
+            "uiHint": { "order": 5 }
+          },
+          "companionExtensions": {
+            "type": "string",
+            "title": "JPEG/HEIC extensions",
+            "description": "Comma-separated list of processed-image extensions to pair with RAW files (earlier = preferred cover)",
+            "default": "jpg,jpeg,heic,heif,hif",
+            "uiHint": { "order": 6 }
+          },
+          "serverUrl": {
+            "type": "string",
+            "title": "Immich server URL",
+            "description": "How the plugin reaches the Immich API from inside the server container. Leave as http://localhost:2283 unless you run a separate microservices container",
+            "default": "http://localhost:2283",
+            "uiHint": { "order": 7 }
+          }
+        },
+        "required": ["apiKey"]
+      }
+    }
+  ]
+}

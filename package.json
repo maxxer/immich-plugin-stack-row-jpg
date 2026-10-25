@@ -1,0 +1,23 @@
+{
+  "name": "immich-raw-jpg-stacker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Immich workflow plugin that stacks RAW + JPEG/HEIC pairs",
+  "license": "AGPL-3.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test test/*.test.ts",
+    "build:js": "esbuild src/index.ts --bundle --format=cjs --target=es2020 --outfile=dist/index.js",
+    "build:wasm": "extism-js dist/index.js -i src/interface.d.ts -o dist/plugin.wasm",
+    "build": "npm run build:js && npm run build:wasm",
+    "package": "npm run build && sh scripts/package.sh"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  }
+}

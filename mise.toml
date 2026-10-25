@@ -1,0 +1,5 @@
+# Same toolchain Immich uses to build its core plugin
+[tools]
+node = "24"
+"github:extism/js-pdk" = "v1.7.0"
+"github:webassembly/binaryen" = "version_124"
